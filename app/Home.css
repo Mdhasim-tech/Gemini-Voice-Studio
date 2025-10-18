@@ -76,6 +76,22 @@ body {
   margin-top: 15px;
   animation: blink 1.2s infinite ease-in-out;
 }
+.load2 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #0070f3; /* Nice blue color */
+  text-align: center;
+  margin-top: 15px;
+  animation: blink 1.2s infinite ease-in-out;
+}
+.load3 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #0070f3; /* Nice blue color */
+  text-align: center;
+  margin-top: 15px;
+  animation: blink 1.2s infinite ease-in-out;
+}
 
 .dropdown {
   width: 100%;

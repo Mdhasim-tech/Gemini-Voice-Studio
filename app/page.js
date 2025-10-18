@@ -92,6 +92,7 @@ export default function Home() {
           <button className="button1" onClick={handleSingleSpeaker}>
             🎧 Generate Audio
           </button>
+          {loading3 && <p className="load3">Loading...</p>}
           {audioSrc && (
             <div className="audio-player">
               <audio key={audioSrc} controls src={audioSrc} />
@@ -127,6 +128,7 @@ export default function Home() {
           <button className="button1" onClick={handleTranscript}>
             🔊 Generate Podcast Audio
           </button>
+          {loading2 && <p className="load2">Loading...</p>}
           {transcriptSrc && (
             <div className="audio-player">
               <audio key={transcriptSrc} controls src={transcriptSrc} />
