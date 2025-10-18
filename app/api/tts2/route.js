@@ -43,13 +43,13 @@ export async function POST(request) {
     if (!data) throw new Error("No audio data returned from TTS API");
 
     const audioBuffer = Buffer.from(data, 'base64');
-    const fileName = path.join(process.cwd(), "public", 'out.wav');
-    await saveWaveFile(fileName, audioBuffer);
-
-    return new Response(
-      JSON.stringify({ success: true, message: "Audio saved", file: "/out.wav" }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(audioBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "audio/wav",
+        "Content-Disposition": "inline; filename=tts.wav"
+      }
+    });
 
   } catch (error) {
     console.error("TTS API Error:", error);

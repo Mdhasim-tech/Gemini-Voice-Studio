@@ -9,27 +9,36 @@ export default function Home() {
   const [voiceName, setVoiceName] = useState("");
   const [transcriptSrc, setTranscriptSrc] = useState("");
   const [transcript, setTranscript] = useState("");
-  const [loading1,setLoading1]=useState(false)
-  const [loading2,setLoading2]=useState(false)
-  const [loading3,setLoading3]=useState(false)
-
+  const [loading1, setLoading1] = useState(false)
+  const [loading2, setLoading2] = useState(false)
+  const [loading3, setLoading3] = useState(false)
   const handleSingleSpeaker = async () => {
     if (!text || !voiceName) {
       alert("Please enter text and select a voice!");
       return;
     }
     setLoading3(true);
+
     const response = await fetch("/api/tts2", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, voiceName }),
     });
-    const data = await response.json();
-    setLoading3(false)
-    if (data.success) {
-      setAudioSrc(`${data.file}?t=${Date.now()}`);
-    } else alert("Error generating audio");
+
+    setLoading3(false);
+
+    if (!response.ok) {
+      const err = await response.json();
+      alert(err.error || "Error generating audio");
+      return;
+    }
+
+    // Convert audio response to URL
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    setAudioSrc(url);
   };
+
 
   const handleTranscript = async () => {
 
@@ -98,6 +107,7 @@ export default function Home() {
               <audio key={audioSrc} controls src={audioSrc} />
             </div>
           )}
+
         </section>
 
         {/* Multi Speaker Section */}
