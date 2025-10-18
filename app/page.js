@@ -5,13 +5,15 @@ import { useState } from "react";
 export default function Home() {
   const [audioSrc, setAudioSrc] = useState("");
   const [audioSrc1, setAudioSrc1] = useState("");
+  const [audioSrc2, setAudioSrc2] = useState("");
   const [text, setText] = useState("");
   const [voiceName, setVoiceName] = useState("");
-  const [transcriptSrc, setTranscriptSrc] = useState("");
   const [transcript, setTranscript] = useState("");
-  const [loading1, setLoading1] = useState(false)
-  const [loading2, setLoading2] = useState(false)
-  const [loading3, setLoading3] = useState(false)
+  const [loading1, setLoading1] = useState(false);
+  const [loading2, setLoading2] = useState(false);
+  const [loading3, setLoading3] = useState(false);
+
+  // ----------------- Single Speaker TTS -----------------
   const handleSingleSpeaker = async () => {
     if (!text || !voiceName) {
       alert("Please enter text and select a voice!");
@@ -19,54 +21,103 @@ export default function Home() {
     }
     setLoading3(true);
 
-    const response = await fetch("/api/tts2", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, voiceName }),
-    });
+    try {
+      const response = await fetch("/api/tts2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voiceName }),
+      });
 
-    setLoading3(false);
+      if (!response.ok) {
+        const err = await response.json();
+        alert(err.error || "Error generating audio");
+        setLoading3(false);
+        return;
+      }
 
-    if (!response.ok) {
-      const err = await response.json();
-      alert(err.error || "Error generating audio");
-      return;
+      const blob = await response.blob();
+      console.log(blob);
+      // ✅ Gemini returns WAV
+      const audioBlob = new Blob([blob], { type: "audio/wav" });
+      console.log(audioBlob)
+      const audioUrl = URL.createObjectURL(audioBlob);
+      console.log(audioUrl)
+      // ✅ Set for <audio> UI
+      setAudioSrc(audioUrl);
+    } catch (error) {
+      console.error(error);
+      alert("Error generating audio");
+    } finally {
+      setLoading3(false);
     }
+  };
 
-    // Convert audio response to URL
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    setAudioSrc(url);
+  // ----------------- Multi Speaker Podcast -----------------
+  const handleMultiSpeaker = async () => {
+    setLoading1(true);
+
+    try {
+      const response = await fetch("/api/tts3");
+      if (!response.ok) {
+        alert("Error generating conversation");
+        setLoading1(false);
+        return;
+      }
+
+      const blob = await response.blob();
+
+      // ✅ Gemini returns WAV
+      const audioBlob = new Blob([blob], { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      console.log(audioUrl)
+      // ✅ Set for <audio> UI
+      setAudioSrc1(audioUrl);
+
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch audio");
+    } finally {
+      setLoading1(false);
+    }
   };
 
 
+  // ----------------- Transcript to Audio -----------------
   const handleTranscript = async () => {
-
     if (!transcript) {
       alert("Please enter text for transcript!");
       return;
     }
-    setLoading2(true)
-    const response = await fetch("/api/tts4", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ transcript }),
-    });
-    const data = await response.json();
-    setLoading2(false);
-    if (data.success) {
-      setTranscriptSrc(`${data.file}?t=${Date.now()}`);
-    } else alert("Error generating audio");
-  };
+    setLoading2(true);
 
-  const handleMultiSpeaker = async () => {
-    setLoading1(true);
-    const response = await fetch("/api/tts3");
-    const data = await response.json();
-    setLoading1(false);
-    if (data.success) {
-      setAudioSrc1(`${data.file}?t=${Date.now()}`);
-    } else alert("Error generating conversation");
+    try {
+      const response = await fetch("/api/tts4", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript }),
+      });
+
+      if (!response.ok) {
+        alert("Error generating audio");
+        setLoading2(false);
+        return;
+      }
+
+      const blob = await response.blob();
+
+      // ✅ Gemini returns WAV
+      const audioBlob = new Blob([blob], { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      console.log(audioUrl)
+      // ✅ Set for <audio> UI
+      setAudioSrc2(audioUrl);
+    } catch (error) {
+      console.error(error);
+      alert("Error generating audio");
+    } finally {
+      setLoading2(false);
+    }
   };
 
   return (
@@ -107,7 +158,6 @@ export default function Home() {
               <audio key={audioSrc} controls src={audioSrc} />
             </div>
           )}
-
         </section>
 
         {/* Multi Speaker Section */}
@@ -139,9 +189,9 @@ export default function Home() {
             🔊 Generate Podcast Audio
           </button>
           {loading2 && <p className="load2">Loading...</p>}
-          {transcriptSrc && (
+          {audioSrc2 && (
             <div className="audio-player">
-              <audio key={transcriptSrc} controls src={transcriptSrc} />
+              <audio key={audioSrc2} controls src={audioSrc2} />
             </div>
           )}
         </section>

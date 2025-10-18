@@ -1,24 +1,6 @@
-// /app/api/tts3/route.js
-import { GoogleGenAI } from '@google/genai';
-import wav from 'wav';
-import path from 'path';
-import fs from 'fs';
-
-async function saveWaveFile(filename, pcmData, channels = 1, rate = 24000, sampleWidth = 2) {
-  return new Promise((resolve, reject) => {
-    const writer = new wav.FileWriter(filename, {
-      channels,
-      sampleRate: rate,
-      bitDepth: sampleWidth * 8,
-    });
-
-    writer.on('finish', resolve);
-    writer.on('error', reject);
-
-    writer.write(pcmData);
-    writer.end();
-  });
-}
+import { GoogleGenAI } from "@google/genai";
+import wav from "wav";
+import { PassThrough } from "stream";
 
 export async function GET() {
   try {
@@ -34,32 +16,59 @@ export async function GET() {
       model: "gemini-2.5-flash-preview-tts",
       contents: [{ parts: [{ text: prompt }] }],
       config: {
-        responseModalities: ['AUDIO'],
+        responseModalities: ["AUDIO"],
         speechConfig: {
           multiSpeakerVoiceConfig: {
             speakerVoiceConfigs: [
-              { speaker: 'Joe', voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
-              { speaker: 'Jane', voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } } }
-            ]
-          }
-        }
-      }
+              {
+                speaker: "Joe",
+                voiceConfig: {
+                  prebuiltVoiceConfig: { voiceName: "Kore" },
+                },
+              },
+              {
+                speaker: "Jane",
+                voiceConfig: {
+                  prebuiltVoiceConfig: { voiceName: "Puck" },
+                },
+              },
+            ],
+          },
+        },
+      },
     });
 
-    const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    const data =
+      response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!data) throw new Error("No audio data returned from Gemini TTS model.");
 
-    const audioBuffer = Buffer.from(data, 'base64');
-    const filePath = path.join(process.cwd(), 'public', 'out.wav');
+    const pcmBuffer = Buffer.from(data, "base64");
 
-    await saveWaveFile(filePath, audioBuffer);
+    // ✅ Convert PCM -> WAV
+    const wavStream = new PassThrough();
+    const writer = new wav.FileWriter("out.wav", {
+      channels: 1,
+      sampleRate: 24000,
+      bitDepth: 16,
+    });
 
-    return new Response(
-      JSON.stringify({ success: true, message: "Audio saved", file: "/out.wav" }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    writer.pipe(wavStream);
+    writer.write(pcmBuffer);
+    writer.end();
 
+    // Collect the finished WAV buffer
+    const chunks = [];
+    for await (const chunk of wavStream) chunks.push(chunk);
+    const wavBuffer = Buffer.concat(chunks);
+    console.log(wavBuffer)
+    return new Response(wavBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "audio/wav",
+      },
+    });
   } catch (err) {
-    console.error(err);
+    console.error("TTS3 Error:", err);
     return new Response(
       JSON.stringify({ success: false, message: err.message }),
       { status: 500, headers: { "Content-Type": "application/json" } }

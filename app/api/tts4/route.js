@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import wav from 'wav';
-import path from "path"
-const ai = new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY});
+import { PassThrough } from "stream";
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 async function saveWaveFile(
    filename,
    pcmData,
@@ -11,9 +11,9 @@ async function saveWaveFile(
 ) {
    return new Promise((resolve, reject) => {
       const writer = new wav.FileWriter(filename, {
-            channels,
-            sampleRate: rate,
-            bitDepth: sampleWidth * 8,
+         channels,
+         sampleRate: rate,
+         bitDepth: sampleWidth * 8,
       });
 
       writer.on('finish', resolve);
@@ -24,8 +24,8 @@ async function saveWaveFile(
    });
 }
 export async function POST(request) {
-   const body=await request.json();
-   const trans=body.transcript;
+   const body = await request.json();
+   const trans = body.transcript;
    console.log(trans);
    const transcript = await ai.models.generateContent({
       model: "gemini-2.0-flash",
@@ -59,15 +59,31 @@ export async function POST(request) {
    });
 
    const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-   const audioBuffer = Buffer.from(data, 'base64');
+   const pcmBuffer = Buffer.from(data, "base64");
 
-   const fileName = path.join(process.cwd(), "public", 'out.wav');
-   await saveWaveFile(fileName, audioBuffer);
+   // ✅ Convert PCM -> WAV
+   const wavStream = new PassThrough();
+   const writer = new wav.FileWriter("out.wav", {
+      channels: 1,
+      sampleRate: 24000,
+      bitDepth: 16,
+   });
 
-   return new Response(
-      JSON.stringify({ success: true, message: "Audio saved", file: "/out.wav" }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-   );
+   writer.pipe(wavStream);
+   writer.write(pcmBuffer);
+   writer.end();
+
+   // Collect the finished WAV buffer
+   const chunks = [];
+   for await (const chunk of wavStream) chunks.push(chunk);
+   const wavBuffer = Buffer.concat(chunks);
+   console.log(wavBuffer)
+   return new Response(wavBuffer, {
+      status: 200,
+      headers: {
+         "Content-Type": "audio/wav",
+      },
+   });
 }
 
 
