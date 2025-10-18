@@ -1,0 +1,121 @@
+body {
+  background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+  font-family: 'Poppins', sans-serif;
+  color: #f8fafc;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(to right, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header p {
+  color: #94a3b8;
+  margin-top: 8px;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 25px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 25px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
+}
+
+.textar {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 10px;
+  color: #f8fafc;
+  padding: 12px;
+  margin: 10px 0;
+  resize: none;
+}
+
+.textar::placeholder {
+  color: #94a3b8;
+}
+.load {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #0070f3; /* Nice blue color */
+  text-align: center;
+  margin-top: 15px;
+  animation: blink 1.2s infinite ease-in-out;
+}
+
+.dropdown {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #2576c7;
+  margin-bottom: 10px;
+}
+
+.button1 {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  width: 100%;
+  transition: all 0.3s ease-in-out;
+}
+
+.button1:hover {
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  transform: scale(1.03);
+}
+
+.audio-player {
+  margin-top: 20px;
+  text-align: center;
+}
+
+audio {
+  width: 100%;
+  outline: none;
+  border-radius: 8px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
