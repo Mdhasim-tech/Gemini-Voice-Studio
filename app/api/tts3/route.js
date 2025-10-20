@@ -7,9 +7,12 @@ export async function GET() {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     const prompt = `
-      TTS the following short conversation clearly with natural pauses:
-      Joe: How's it going today, Jane?
-      Jane: Not too bad, Joe. How about you? Are you coming to play football?
+      TTS the following cheerful Diwali-themed short conversation clearly with natural pauses:
+
+Dr. Anya: Welcome back to the LightTalk Podcast! I can already smell the sweets and see the diyas glowing.
+Liam: Oh yes, Anya! It’s that magical time again — Diwali! The festival that reminds us that light always conquers darkness.
+Dr. Anya: Exactly, and what better way to celebrate than with laughter, love, and maybe a few fireworks — safely, of course!
+Liam: Couldn’t agree more. Here’s wishing everyone listening a bright and joyful Diwali ahead!
     `;
 
     const response = await ai.models.generateContent({
